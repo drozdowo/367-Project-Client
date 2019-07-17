@@ -1,11 +1,12 @@
 import java.io.*;
 import java.net.*;
 import java.*;
+import java.nio.Buffer;
 import java.util.Scanner;
 import java.util.Random;
 
 public class client {
-    private ClientSideConnection csc;
+
 
     public static void main(String[] args) {
         try {
@@ -17,10 +18,75 @@ public class client {
             Thread threadTwo = new Thread(receiveThread);
             threadTwo.start();
 
-        } catch (Excpetion e) {
-            System.out.println(e.getMessage());
+        } catch (Exception e) {System.out.println(e.getMessage());}
+    }
+
+    static class ReceiveThread implements Runnable {
+        Socket socket = null;
+        BufferedReader receive = null;
+
+        public ReceiveThread(Socket socket) {
+            this.socket = socket;
+
+        }
+
+        public void run() {
+            try {
+                byte[] buffer = new byte[4096];
+                int length = -1;
+                System.out.println(this.socket.getInputStream() == null);
+                while ((length = this.socket.getInputStream().read(buffer)) > -1){
+                    String read = new String(buffer, 0 ,length);
+                    System.out.println("read: " + read);
+                }
+            } catch(IOException e) { e.printStackTrace();}
         }
     }
+
+    static class SendThread implements Runnable {
+        Socket socket = null;
+        PrintWriter print = null;
+        BufferedReader input = null;
+
+        public SendThread(Socket socket)  {
+            this.socket = socket;
+        }
+
+        public void run() {
+            try {
+                if(socket.isConnected())
+                {
+                    System.out.println("Client connected to" + socket.getInetAddress() + " on port " + socket.getPort());
+                    this.print = new PrintWriter(socket.getOutputStream(), true);
+                    while(true) {
+                        System.out.print(">> ");
+                        input = new BufferedReader(new InputStreamReader(System.in));
+                        String ToServerMessage = null;
+                        ToServerMessage = input.readLine();
+                        this.print.println(ToServerMessage);
+                        this.print.flush();
+
+                        if (ToServerMessage.equals("EXIT")) break;
+                    }
+                    socket.close();
+                }
+            } catch(Exception e) { System.out.println(e.getMessage()); }
+        }
+    }
+}
+
+
+/*
+ try {
+                receive = new BufferedInputStream(InputStreamReader(this.socket.getInputStream());
+
+                String messageReceived = null;
+
+                while ((messageReceived = receive.readLine()) != null) {
+                    System.out.println("From server: " + messageReceived);
+                }
+            } catch(IOException e) { e.printStackTrace();}
+*/
 
 
 
