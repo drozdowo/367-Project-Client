@@ -5,22 +5,22 @@ import java.util.Scanner;
 import java.util.Random;
 
 public class client {
-	private ClientSideConnection csc;
+    private ClientSideConnection csc;
 
-	public static void main(String[] args) {
-		try {
-			Socket socket = new Socket("localhost", 25565);
-			SendThread sendThread = new SendThread(socket);
-			Thread thread = new Thread(sendThread);
-			thread.start();
-			ReceiveThread receiveThread = new ReceiveThread(socket);
-			Thread threadTwo = new Thread(receiveThread);
-			threadTwo.start();
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 25565);
+            SendThread sendThread = new SendThread(socket);
+            Thread thread = new Thread(sendThread);
+            thread.start();
+            ReceiveThread receiveThread = new ReceiveThread(socket);
+            Thread threadTwo = new Thread(receiveThread);
+            threadTwo.start();
 
-		} catch (Excpetion e) {
-			System.out.println(e.getMessage());
-		}
-	}
+        } catch (Excpetion e) {
+            System.out.println(e.getMessage());
+        }
+    }
 
 
 
