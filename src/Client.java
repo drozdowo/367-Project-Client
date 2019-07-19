@@ -121,6 +121,7 @@ public class Client {
             System.out.println("What will you do?: ");
             String myChoice = input.nextLine();
             this.stateHandler("SEND_TURN",myMove + "_" + myChoice);
+            this.myState = PLAYER_STATE.WAITING;
             return;
         }
 
