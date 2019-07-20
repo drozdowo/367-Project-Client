@@ -1,5 +1,6 @@
-import java.awt.desktop.SystemSleepEvent;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Client {
@@ -10,6 +11,7 @@ public class Client {
     private Thread readingThread;
     private static int MAX_CONNECTION_ATTEMPTS = 10;
     private static int THREAD_DELAY = 50; //in msec
+    private ArrayList<Pokemon> pokemonList;
     private enum PLAYER_STATE { NOT_CONNECTED, SUBMITTED_NAME, PLAYER_TURN, WAITING}
     private PLAYER_STATE myState;
 
@@ -58,6 +60,12 @@ public class Client {
         this.stateHandler(message, option);
     }
 
+    public void onReceivePokemonList(ArrayList<Pokemon> list){
+        System.out.println("Got Pokemon: " + list.size());
+        this.pokemonList = list;
+        this.stateHandler("RECEIEVED_POKEMON", "0");
+    }
+
     private void stateHandler(String message, String options){
         System.out.println("|||StateHandler|||");
         System.out.println("curState: " + this.myState + " | Input: " + message + " " + options);
@@ -90,6 +98,9 @@ public class Client {
         else if (this.myState.equals(PLAYER_STATE.WAITING)){
             //Waiting for our turn, can give player input here? will need to
             //interrupt this thread when we get reply from server...
+            if (message.equals("POKEMON_LIST")){
+                System.out.println(options);
+            }
             if (message.equals("YOUR_TURN")){
                 this.myState = PLAYER_STATE.PLAYER_TURN;
                 System.out.println("=== Round " + options + " ===");
