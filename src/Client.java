@@ -12,6 +12,7 @@ public class Client {
     private static int MAX_CONNECTION_ATTEMPTS = 10;
     private static int THREAD_DELAY = 50; //in msec
     private ArrayList<Pokemon> pokemonList;
+    private Pokemon myPokemon;
     private enum PLAYER_STATE { NOT_CONNECTED, SUBMITTED_NAME, PLAYER_TURN, WAITING}
     private PLAYER_STATE myState;
 
@@ -81,6 +82,7 @@ public class Client {
                 System.out.println("=== Round " + options + "===");
                 System.out.println("=== Your Turn! ===");
             }
+            return;
         }
         else if (this.myState.equals(PLAYER_STATE.PLAYER_TURN)){
             //it's our turn. Block thread here, take input, submit data, etc
@@ -88,54 +90,62 @@ public class Client {
                 this.myState = PLAYER_STATE.WAITING;
                 sendMessageToServer(message + " " + options);
             }
+            return;
         }
         else if (this.myState.equals(PLAYER_STATE.SUBMITTED_NAME)){
             //Submitted our name, waiting for READY_ALL
             if (message.equals("NAME_ACCEPT")){
                 this.myState = PLAYER_STATE.WAITING;
             }
+            return;
         }
         else if (this.myState.equals(PLAYER_STATE.WAITING)){
             //Waiting for our turn, can give player input here? will need to
             //interrupt this thread when we get reply from server...
-            if (message.equals("POKEMON_LIST")){
-                System.out.println(options);
-            }
-            if (message.equals("YOUR_TURN")){
+            if (message.equals("RECEIVED_POKEMON")){
+                selectPokemon();
+            } else if (message.equals("YOUR_TURN")){
                 this.myState = PLAYER_STATE.PLAYER_TURN;
                 System.out.println("=== Round " + options + " ===");
                 System.out.println("=== Your Turn! ===");
                 handleMyTurn();
+            } else if (message.equals("POKEMON_READY")){
+                this.sendMessageToServer("POKEMON_READY 0");
             }
+            return;
         }
     }
 
     public void handleMyTurn(){
-        System.out.println("================");
-        System.out.println("1: ATTACK ");
-        System.out.println("2: POKEMON");
-        System.out.println("3: ITEMS");
-        System.out.println("----------------");
-        System.out.println("Active Pokemon: PIKACHU");
-        System.out.println("HP: 100");
-        System.out.println("================");
         Scanner input = new Scanner(System.in);
         System.out.println("What will you do?: ");
         String myMove = input.nextLine();
-        if (myMove.equals("1")){
-            System.out.println("================");
-            System.out.println("1. QUICK ATTACK ");
-            System.out.println("2. THUNDERBOLT ");
-            System.out.println("3. TAIL WHIP ");
-            System.out.println("0. BACK");
-            System.out.println("================");
-            System.out.println("What will you do?: ");
-            String myChoice = input.nextLine();
-            this.stateHandler("SEND_TURN",myMove + "_" + myChoice);
-            this.myState = PLAYER_STATE.WAITING;
-            return;
-        }
+        System.out.println("================");
+        System.out.println("1. QUICK ATTACK ");
+        System.out.println("2. THUNDERBOLT ");
+        System.out.println("3. TAIL WHIP ");
+        System.out.println("0. BACK");
+        System.out.println("================");
+        System.out.println("What will you do?: ");
+        String myChoice = input.nextLine();
+        this.stateHandler("SEND_TURN",myMove + "_" + myChoice);
+        this.myState = PLAYER_STATE.WAITING;
+        return;
+    }
 
+    public void selectPokemon(){
+        System.out.println("==========");
+        for (int i = 0; i < this.pokemonList.size();i++){
+            Pokemon me = this.pokemonList.get(i);
+            System.out.println("["+i+"]: " + me.getName() + " Type: " + me.getType());
+        }
+        System.out.println("---------");
+        System.out.println("Select a Pokemon:");
+        Scanner input = new Scanner(System.in);
+        int myChoice = input.nextInt();
+        System.out.println("You selected " + this.pokemonList.get(myChoice).getName());
+        this.myPokemon = this.pokemonList.get(myChoice);
+        stateHandler("POKEMON_READY", "0");
     }
 
     public void sendMessageToServer(String msg){

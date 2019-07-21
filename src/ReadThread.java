@@ -28,6 +28,7 @@ class ReadThread implements Runnable {
                         ObjectInputStream ois = new ObjectInputStream(this.in);
                         Object temp = ois.readObject();
                         if (temp instanceof ArrayList<?>){
+                            System.out.println("is arraylist??");
                             ArrayList temp2 = (ArrayList<?>) temp;
                             if (temp2.get(0) instanceof Pokemon){
                                 //Deserialize it here into an actual new arraylist of pokemon...
@@ -39,6 +40,7 @@ class ReadThread implements Runnable {
                                 this.myClient.onReceivePokemonList(readList);
                             }
                         } else {
+                            System.out.println("reg message");
                             this.myClient.onRecieveServerMessage(new String(buffer, 0, len));
                         }
                     } catch (Exception e){
