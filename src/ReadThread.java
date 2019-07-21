@@ -18,35 +18,38 @@ class ReadThread implements Runnable {
     public void run() {
         try {
             while (true){
-                if (this.in.available() > 0){ //data available
-                    System.out.println("got data");
+                if (this.in.available() > 0){ //data availabl
                     byte[] buffer = this.in.readNBytes(this.in.available());
                     int len = buffer.length;
-                    //Before we do anything, we'll try to change this into an object to
-                    //see if it is an object before we pass it on
-                    try {
-                        ObjectInputStream ois = new ObjectInputStream(this.in);
-                        Object temp = ois.readObject();
-                        if (temp instanceof ArrayList<?>){
-                            System.out.println("is arraylist??");
-                            ArrayList temp2 = (ArrayList<?>) temp;
-                            if (temp2.get(0) instanceof Pokemon){
-                                //Deserialize it here into an actual new arraylist of pokemon...
-                                ArrayList<Pokemon> readList = new ArrayList<Pokemon>();
-                                for (Object a: temp2) {
-                                    Pokemon tempPokemon = (Pokemon) a;
-                                    readList.add(tempPokemon);
-                                }
-                                this.myClient.onReceivePokemonList(readList);
-                            }
-                        } else {
-                            System.out.println("reg message");
-                            this.myClient.onRecieveServerMessage(new String(buffer, 0, len));
-                        }
-                    } catch (Exception e){
-                        System.out.println("Exception in read");
-                        //Not an object? treat it like normal...
+                    //Try to create a string from it, if we get an exception its probabl
+                    //an object.
+                    try{
+                        String msg = new String(buffer, 0, len);
                         this.myClient.onRecieveServerMessage(new String(buffer, 0, len));
+                    } catch (Exception e1){
+                        //If we get an exception, lets try to create an object
+                        try {
+                            ByteArrayInputStream bais = new ByteArrayInputStream(buffer);
+                            bais.read();
+                            ObjectInputStream ois = new ObjectInputStream(bais);
+                            Object temp = ois.readObject();
+                            if (temp instanceof ArrayList<?>){
+                                System.out.println("is arraylist??");
+                                ArrayList temp2 = (ArrayList<?>) temp;
+                                if (temp2.get(0) instanceof Pokemon){
+                                    //Deserialize it here into an actual new arraylist of pokemon...
+                                    ArrayList<Pokemon> readList = new ArrayList<Pokemon>();
+                                    for (Object a: temp2) {
+                                        Pokemon tempPokemon = (Pokemon) a;
+                                        readList.add(tempPokemon);
+                                    }
+                                    this.myClient.onReceivePokemonList(readList);
+                                }
+                            }
+                        } catch (Exception e2){
+                            System.out.println("Exception in read");
+                            e2.printStackTrace();
+                        }
                     }
                 }
             }
