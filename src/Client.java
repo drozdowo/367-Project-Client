@@ -64,7 +64,7 @@ public class Client {
     public void onReceivePokemonList(ArrayList<Pokemon> list){
         System.out.println("Got Pokemon: " + list.size());
         this.pokemonList = list;
-        this.stateHandler("RECEIEVED_POKEMON", "0");
+        this.stateHandler("RECEIVED_POKEMON", "0");
     }
 
     private void stateHandler(String message, String options){
