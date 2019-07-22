@@ -5,15 +5,18 @@ public class PokemonMove implements Serializable {
     private int minimumDamage;
     private int maximumDamage;
     private double critChance;
+    private boolean didCrit;
     private String type;
     private String name;
+    private int id;
 
-    public PokemonMove(String name, String type, int minimumDamage, int maximumDamage, double critChance){
+    public PokemonMove(String name, String type, int minimumDamage, int maximumDamage, double critChance, int id){
         this.setName(name);
         this.setType(type);
         this.setMinimumDamage(minimumDamage);
         this.setMaximumDamage(maximumDamage);
         this.setCritChance(critChance);
+        this.setId(id);
     }
 
     public int getAttack(){
@@ -22,6 +25,7 @@ public class PokemonMove implements Serializable {
         int crit = rand.nextInt(99);
         if (crit <= (critChance*100)){
             //we crit
+            this.didCrit = true;
             damage *= 1.5; //50% more damage;
         }
         //finally check types
@@ -66,5 +70,17 @@ public class PokemonMove implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public boolean didCrit(){
+        return this.didCrit;
     }
 }

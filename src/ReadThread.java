@@ -23,7 +23,7 @@ class ReadThread implements Runnable {
                         ObjectInputStream ois = new ObjectInputStream(myIn);
                         Object temp = ois.readObject();
                         if (temp instanceof ArrayList<?>){
-                            System.out.println("is arraylist??");
+//                            System.out.println("is arraylist??");
                             ArrayList temp2 = (ArrayList<?>) temp;
                             if (temp2.get(0) instanceof Pokemon){
                                 //Deserialize it here into an actual new arraylist of pokemon...
@@ -41,7 +41,7 @@ class ReadThread implements Runnable {
                         myIn.reset();
                         byte[] buffer = myIn.readNBytes(myIn.available());
                         int len = buffer.length;
-                        System.out.print("not an object  " + len +" |" + new String(buffer, 0, len));
+//                        System.out.print("not an object  " + len +" |" + new String(buffer, 0, len));
                         this.myClient.onRecieveServerMessage(new String(buffer, 0, len));
                     }
                 }

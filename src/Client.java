@@ -39,11 +39,11 @@ public class Client {
 
     public void setUpThreads() {
         try {
-            System.out.println("Starting reading thread...");
+//            System.out.println("Starting reading thread...");
             this.readThread = new ReadThread(this.serverConnection.getInputStream(), this);
             this.readingThread = new Thread(this.readThread);
             this.readingThread.start();
-            System.out.println("Reading thread started...");
+//            System.out.println("Reading thread started...");
         } catch (IOException e){
             e.printStackTrace();
         }
@@ -62,14 +62,14 @@ public class Client {
     }
 
     public void onReceivePokemonList(ArrayList<Pokemon> list){
-        System.out.println("Got Pokemon: " + list.size());
+//        System.out.println("Got Pokemon: " + list.size());
         this.pokemonList = list;
         this.stateHandler("RECEIVED_POKEMON", "0");
     }
 
     private void stateHandler(String message, String options){
-        System.out.println("|||StateHandler|||");
-        System.out.println("curState: " + this.myState + " | Input: " + message + " " + options);
+//        System.out.println("|||StateHandler|||");
+//        System.out.println("curState: " + this.myState + " | Input: " + message + " " + options);
         //Here we'll read in server messages based on two things:
         //what STATE we're in, and the INPUT
         if (this.myState.equals(PLAYER_STATE.NOT_CONNECTED)){
@@ -106,29 +106,75 @@ public class Client {
                 selectPokemon();
             } else if (message.equals("YOUR_TURN")){
                 this.myState = PLAYER_STATE.PLAYER_TURN;
-                System.out.println("=== Round " + options + " ===");
+                System.out.println("=== Round " + (int)Math.ceil(Double.valueOf(options)*0.5) + " ===");
                 System.out.println("=== Your Turn! ===");
                 handleMyTurn();
             } else if (message.equals("POKEMON_READY")){
-                this.sendMessageToServer("POKEMON_READY 0");
+                this.sendMessageToServer("POKEMON_READY "+options);
+            } else if(message.equals("DEAL_DAMAGE")){
+                damageNotificationDealt(options);
+            } else if (message.equals("RECEIVE_DAMAGE")){
+                damageNotificationReceived(options);
+            } else if(message.equals("YOU_WIN")){
+                youWin(options);
+            } else if (message.equals("YOU_LOSE")){
+                youLose(options);
             }
             return;
         }
     }
 
+    public void youWin(String options){
+        damageNotificationDealt(options);
+        System.out.println("**================**");
+        System.out.println("**    You Won!!   **");
+        System.out.println("**================**");
+        System.exit(0);
+    }
+
+    public void youLose(String options){
+        damageNotificationReceived(options);
+        System.out.println("**================**");
+        System.out.println("**    You Lost!   **");
+        System.out.println("**================**");
+        System.exit(0);
+    }
+
+    public void damageNotificationDealt(String options){
+        //Need to decode the option string here:
+        //<TheirPokemon int>_<move int>_<dmg int>_<didCrit 1/0>
+        String[] msgs = options.split("_");
+        String theirPokemon = this.pokemonList.get(Integer.parseInt(msgs[0])).getName();
+        String move = this.myPokemon.getMoves().get(Integer.parseInt(msgs[1])).getName();
+        int damage = Integer.parseInt(msgs[2]);
+        boolean didCrit = msgs[3].equals("1")?true:false;
+        System.out.println("*** Your " + this.myPokemon.getName() + " used " + move + " and did " + damage + " to their " + theirPokemon + "." + (didCrit?" It was super effective!***":"***"));
+        System.out.println("*** Your " + this.myPokemon.getName() +" has " + this.myPokemon.getHp() +" HP Left ***");
+    }
+
+    public void damageNotificationReceived(String options){
+        //Need to decode the option string here:
+        //<TheirPokemon int>_<move int>_<dmg int>_<didCrit 1/0>
+        String[] msgs = options.split("_");
+        String theirPokemon = this.pokemonList.get(Integer.parseInt(msgs[0])).getName();
+        String move = this.pokemonList.get(Integer.parseInt(msgs[0])).getMoves().get(Integer.parseInt(msgs[1])).getName();
+        int damage = Integer.parseInt(msgs[2]);
+        this.myPokemon.setHp(this.myPokemon.getHp() - damage);
+        boolean didCrit = msgs[3].equals("1")?true:false;
+        System.out.println("*** Your " + this.myPokemon.getName() + " was hit by enemy "+theirPokemon+"'s "+ move + " and received " + damage + " damage!! " + (didCrit?" It was super effective!***":"***"));
+        System.out.println("*** Your " + this.myPokemon.getName() +" has " + this.myPokemon.getHp() +" HP Left ***");
+    }
+
     public void handleMyTurn(){
+        System.out.println("============");
+        for (PokemonMove move:this.myPokemon.getMoves()) {
+            System.out.println("["+(move.getId()+1)+"] - " + move.getName());
+        }
+        System.out.println("============");
         Scanner input = new Scanner(System.in);
         System.out.println("What will you do?: ");
         String myMove = input.nextLine();
-        System.out.println("================");
-        System.out.println("1. QUICK ATTACK ");
-        System.out.println("2. THUNDERBOLT ");
-        System.out.println("3. TAIL WHIP ");
-        System.out.println("0. BACK");
-        System.out.println("================");
-        System.out.println("What will you do?: ");
-        String myChoice = input.nextLine();
-        this.stateHandler("SEND_TURN",myMove + "_" + myChoice);
+        this.stateHandler("SEND_TURN",1 + "_" + (Integer.parseInt(myMove)-1));
         this.myState = PLAYER_STATE.WAITING;
         return;
     }
@@ -145,12 +191,12 @@ public class Client {
         int myChoice = input.nextInt();
         System.out.println("You selected " + this.pokemonList.get(myChoice).getName());
         this.myPokemon = this.pokemonList.get(myChoice);
-        stateHandler("POKEMON_READY", "0");
+        stateHandler("POKEMON_READY", this.myPokemon.getId()+"");
     }
 
     public void sendMessageToServer(String msg){
         try {
-            System.out.println("Sending msg to server: " + msg);
+//            System.out.println("Sending msg to server: " + msg);
             this.serverConnection.getOutputStream().write(msg.getBytes());
             this.serverConnection.getOutputStream().flush();
         } catch (IOException e){
