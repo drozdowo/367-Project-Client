@@ -39,7 +39,8 @@ class ReadThread implements Runnable {
                         //Exception means its not an object. We'll reset the input
                         //stream and read a string like normal.
                         myIn.reset();
-                        byte[] buffer = myIn.readNBytes(myIn.available());
+                        byte[] buffer = new byte[120120];
+                        myIn.read(buffer, 0, myIn.available());
                         int len = buffer.length;
 //                        System.out.print("not an object  " + len +" |" + new String(buffer, 0, len));
                         this.myClient.onRecieveServerMessage(new String(buffer, 0, len));
