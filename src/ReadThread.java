@@ -1,11 +1,9 @@
 import java.io.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 class ReadThread implements Runnable {
     private InputStream in;
     private Client myClient;
-    private static int THREAD_DELAY = 50; //msec
 
     public ReadThread(InputStream in, Client client){
         this.in = in;
